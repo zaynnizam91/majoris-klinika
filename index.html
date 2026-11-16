@@ -64,6 +64,10 @@ dialog input,dialog select{width:100%;padding:9px;margin:4px 0 12px;border:1px s
 #dlg{width:min(460px,94%)}#pd{width:min(440px,94%)}
 .cm{max-width:78%;padding:7px 10px;border-radius:12px;margin:6px 0;background:var(--r);word-break:break-word}.cm.me{margin-left:auto;background:var(--ok)}.cm small{color:var(--mute);display:block}.cm img{max-width:100%;max-height:260px;border-radius:8px;display:block;margin-top:4px}.cm .x{float:right;margin-left:8px}
 #chb:not(:empty){background:#e03131;color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-left:6px}
+:where(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]),select,textarea){background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+::placeholder{color:var(--mute);opacity:.8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :where(input,select,textarea){color-scheme:dark}}
+select option{background:var(--panel);color:var(--ink)}
 </style>
 </head>
 <body>
