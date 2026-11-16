@@ -273,17 +273,19 @@ var db=rows.filter(function(r){return dueOf(r)>0}).sort(function(a,b){return(b.d
 $("#tdb").innerHTML=T(["Sana","Bemor","Qarz",""],db.map(function(r){return'<tr class="due"><td>'+tm(r)+'</td><td>'+esc(r.n)+'</td><td class="num">'+M(dueOf(r))+'</td><td><button class="dbtn" data-pay="'+r.id+'">To‘lov qabul qilish</button></td></tr>'}).join("")||'<tr><td colspan="4">Qarzdorlik yo‘q.</td></tr>','<tr><td colspan="2">Jami qarz</td><td>'+M(dt)+'</td><td></td></tr>');
 document.querySelectorAll("[data-pay]").forEach(function(b){b.onclick=function(){openPay(+b.dataset.pay)}})}
 /* ---- Chat ---- */
-var chn="gen",CHN=[["gen","Umumiy"],["lor","LOR"],["mu","Muolaja"]];
+var chn="gen",CHN=[["gen","Umumiy"],["lor","LOR"],["mu","Muolaja"],["adm","Adminlar"]];
+function chadm(){var r=role();return r==="superadmin"||r==="Admin"}
+function chvis(c){return c!=="adm"||chadm()}
 function chseen(){try{return+localStorage.getItem("majseen")||0}catch(e){return 0}}
-function chbadge(){var el=document.getElementById("chb");if(!el)return;var s=chseen(),n=((location.hash||"")==="#chat")?0:CH.filter(function(m){return m.id>s&&m.u!==user}).length;el.textContent=n?String(n):""}
-function chatv(){view.innerHTML='<div class="card"><h2 style="margin:0 0 8px">Chat</h2><div class="tabs" id="chtabs">'+CHN.map(function(c){return'<button type="button" data-cc="'+c[0]+'"'+(c[0]===chn?' class="on"':"")+'>'+c[1]+'</button>'}).join("")+'</div><div id="chm" style="height:56vh;overflow:auto;padding:4px"></div><div class="bar" style="margin-top:8px;flex-wrap:nowrap"><input class="grow" id="cht" placeholder="Xabar yozing..." autocomplete="off"><label class="btn alt" style="cursor:pointer;margin:0" title="Rasm">📷<input type="file" id="chf" accept="image/*" hidden></label><button class="btn" id="chs2">Yuborish</button></div></div>';
+function chbadge(){var el=document.getElementById("chb");if(!el)return;var s=chseen(),n=((location.hash||"")==="#chat")?0:CH.filter(function(m){return m.id>s&&m.u!==user&&chvis(m.ch)}).length;el.textContent=n?String(n):""}
+function chatv(){if(!chvis(chn))chn="gen";view.innerHTML='<div class="card"><h2 style="margin:0 0 8px">Chat</h2><div class="tabs" id="chtabs">'+CHN.filter(function(c){return chvis(c[0])}).map(function(c){return'<button type="button" data-cc="'+c[0]+'"'+(c[0]===chn?' class="on"':"")+'>'+c[1]+'</button>'}).join("")+'</div><div id="chm" style="height:56vh;overflow:auto;padding:4px"></div><div class="bar" style="margin-top:8px;flex-wrap:nowrap"><input class="grow" id="cht" placeholder="Xabar yozing..." autocomplete="off"><label class="btn alt" style="cursor:pointer;margin:0" title="Rasm">📷<input type="file" id="chf" accept="image/*" hidden></label><button class="btn" id="chs2">Yuborish</button></div></div>';
 document.querySelectorAll("[data-cc]").forEach(function(b){b.onclick=function(){chn=b.dataset.cc;chatv()}});
 function send(img){var tx=$("#cht").value.trim();if(!tx&&!img)return;CH.push({id:nid(),ch:chn,u:user,n:nm(user),tx:tx,img:img||""});chs();$("#cht").value="";chatfill(true)}
 $("#chs2").onclick=function(){send()};$("#cht").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();send()}};
 $("#chf").onchange=function(e){var f=e.target.files[0];e.target.value="";if(!f)return;var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,800/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);send(c.toDataURL("image/jpeg",.65))};im.onerror=function(){toast("Rasm o‘qilmadi")};im.src=fr.result};fr.readAsDataURL(f)};
 chatfill(true);$("#cht").focus()}
 function chatfill(bottom){var box=document.getElementById("chm");if(!box)return;var adm=role()==="superadmin"||role()==="Admin",near=bottom||box.scrollHeight-box.scrollTop-box.clientHeight<80;
-var l=CH.filter(function(m){return m.ch===chn}).sort(function(a,b){return a.id-b.id}).slice(-150);
+var l=CH.filter(function(m){return m.ch===chn&&chvis(m.ch)}).sort(function(a,b){return a.id-b.id}).slice(-150);
 box.innerHTML=l.map(function(m){var d=new Date(Math.floor(m.id/1000)),own=m.u===user,tt=(iso(d)===TODAY?"":pad(d.getDate())+"."+pad(d.getMonth()+1)+" ")+pad(d.getHours())+":"+pad(d.getMinutes());
 return'<div class="cm'+(own?" me":"")+'">'+((own||adm)?'<button class="x" data-cd="'+m.id+'" aria-label="O\'chirish">✕</button>':"")+'<small>'+esc(nm(m.u)||m.n)+' · '+tt+'</small>'+(m.tx?esc(m.tx).replace(/\n/g,"<br>"):"")+(m.img?'<img src="'+m.img+'" alt="">':"")+'</div>'}).join("")||'<p style="color:var(--mute)">Hozircha xabar yo‘q.</p>';
 if(near)box.scrollTop=box.scrollHeight;
