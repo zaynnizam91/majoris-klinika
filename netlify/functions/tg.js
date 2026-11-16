@@ -12,10 +12,9 @@ const out = (c, o) => ({ statusCode: c, headers: H, body: JSON.stringify(o) });
 const ROLES = {
   LOR: { env: "TG_CHAT_ID_LOR", label: "LOR shifokori" },
   Hamshira: { env: "TG_CHAT_ID_NURSE", label: "Muolaja hamshirasi" },
-  Admin: { env: "TG_CHAT_ID_ADMIN", label: "Admin" },
-  Registrator: { env: "TG_CHAT_ID_ADMIN", label: "Kassir" },
+  Registrator: { env: "TG_CHAT_ID_KASSA", alt: "TG_CHAT_ID_ADMIN", label: "Kassir" },
 };
-const chatFor = (role) => (ROLES[role] && (process.env[ROLES[role].env] || process.env.TG_CHAT_ID)) || "";
+const chatFor = (role) => (ROLES[role] && (process.env[ROLES[role].env] || (ROLES[role].alt && process.env[ROLES[role].alt]) || process.env.TG_CHAT_ID)) || "";
 
 async function user(login) {
   const r = await fetch(`${SB}/rest/v1/records?select=data&coll=eq.users&id=eq.${encodeURIComponent(login)}&deleted=eq.false`, { headers: { apikey: KEY } });
@@ -34,7 +33,7 @@ exports.handler = async (ev) => {
   if (ev.httpMethod === "OPTIONS") return out(204, {});
   if (ev.httpMethod === "GET") {
     const g = (r) => !!(T && chatFor(r));
-    return out(200, { configured: !!(T && (process.env.TG_CHAT_ID || process.env.TG_CHAT_ID_LOR || process.env.TG_CHAT_ID_NURSE || process.env.TG_CHAT_ID_ADMIN)), groups: { lor: g("LOR"), nurse: g("Hamshira"), admin: g("Admin") } });
+    return out(200, { configured: !!(T && (process.env.TG_CHAT_ID || process.env.TG_CHAT_ID_LOR || process.env.TG_CHAT_ID_NURSE || process.env.TG_CHAT_ID_KASSA || process.env.TG_CHAT_ID_ADMIN)), groups: { lor: g("LOR"), nurse: g("Hamshira"), kassa: g("Registrator") } });
   }
   if (ev.httpMethod !== "POST") return out(405, { ok: false });
   if (!T) return out(503, { ok: false, error: "TG_BOT_TOKEN sozlanmagan" });
@@ -52,7 +51,7 @@ exports.handler = async (ev) => {
   }
   if (b.type === "test" && (u.r === "superadmin" || u.r === "Admin")) {
     const done = {}, res = [];
-    for (const [role, name] of [["LOR", "LOR"], ["Hamshira", "Hamshira"], ["Admin", "Admin"]]) {
+    for (const [role, name] of [["LOR", "LOR"], ["Hamshira", "Hamshira"], ["Registrator", "Kassa"]]) {
       const chat = chatFor(role);
       if (!chat || done[chat]) continue;
       done[chat] = 1;
