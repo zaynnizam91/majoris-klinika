@@ -65,8 +65,8 @@ dialog input,dialog select{width:100%;padding:9px;margin:4px 0 12px;border:1px s
 <section id="login">
   <form class="box" id="lf">
     <div class="brand" style="font-size:26px"><span class="lg"></span>Majoris Inc</div><p id="lt">Kirish oynasi</p>
-    <div id="rec" style="display:none"><label>Profillar (tanlang)</label><div id="recl" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
-    <label for="u">Login</label>
+    <div id="rec" style="display:none"><label for="usel">Xodimni tanlang</label><select id="usel"></select></div>
+    <label for="u" id="ulab">Login</label>
     <input id="u" autocomplete="username" autocapitalize="off">
     <label for="p">Parol</label>
     <input id="p" type="password" placeholder="Kamida 6 belgi" autocomplete="current-password">
@@ -300,13 +300,14 @@ async function H(p){try{var b=await crypto.subtle.digest("SHA-256",new TextEncod
 function recGet(){try{return JSON.parse(localStorage.getItem("majrecent")||"[]")}catch(e){return[]}}
 function recSet(a){try{localStorage.setItem("majrecent",JSON.stringify(a))}catch(e){}}
 function recAdd(l){var a=recGet().filter(function(x){return x!==l});a.unshift(l);recSet(a.slice(0,8))}
-function recUI(){var a=US.map(function(u){return u.l}),box=$("#rec");
-if(!a.length){box.style.display="none";return}
-box.style.display="block";$("#recl").innerHTML=a.map(function(l){var u=US.find(function(x){return x.l===l});return'<span style="display:inline-flex;align-items:center;background:rgba(255,255,255,.2);border-radius:99px"><button type="button" data-rl="'+esc(l)+'" style="background:none;border:0;color:#fff;padding:6px 6px 6px 12px;cursor:pointer">'+esc(l)+(u&&u.n&&u.n!==l?" · "+esc(u.n):"")+'</button></span>'}).join("");
-document.querySelectorAll("[data-rl]").forEach(function(b){b.onclick=function(){$("#u").value=b.dataset.rl;$("#p").focus()}});}
+function recUI(){var box=$("#rec"),has=US.length>0;box.style.display=has?"block":"none";$("#u").style.display=has?"none":"";$("#ulab").style.display=has?"none":"";
+if(!has)return;var nm=function(u){return u.r==="superadmin"?"Dasturchi":(u.n||u.l)};
+var cnt={};US.forEach(function(u){cnt[nm(u)]=(cnt[nm(u)]||0)+1});
+$("#usel").innerHTML='<option value="">— tanlang —</option>'+US.map(function(u){return'<option value="'+esc(u.l)+'">'+esc(nm(u))+(cnt[nm(u)]>1?" ("+esc(u.l)+")":"")+'</option>'}).join("");
+$("#usel").onchange=function(){$("#u").value=this.value;if(this.value)$("#p").focus()}}
 function loginUI(){recUI();var f=!US.length;$("#lt").textContent=f?"Birinchi sozlash: dasturchi (superadmin) hisobini yarating":"Kirish oynasi";$("#lb").textContent=f?"Hisob yaratish":"Kirish";$("#lm").textContent=""}
 $("#lf").onsubmit=async function(e){e.preventDefault();var l=$("#u").value.trim().toLowerCase(),p=$("#p").value;
-if(!l||p.length<6){$("#lm").textContent="Login kiriting, parol kamida 6 belgi bo'lsin.";return}
+if(!l){$("#lm").textContent=US.length?"Xodimni tanlang.":"Login kiriting.";return}if(p.length<6){$("#lm").textContent="Parol kamida 6 belgi bo'lsin.";return}
 var h=await H(p);
 if(!US.length){US.push({l:l,h:h,n:"Majoris Inc",r:"superadmin"});usv();recAdd(l);enter(l);return}
 var u=US.find(function(x){return x.l===l&&x.h===h});
