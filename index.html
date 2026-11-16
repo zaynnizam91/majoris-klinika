@@ -65,6 +65,7 @@ dialog input,dialog select{width:100%;padding:9px;margin:4px 0 12px;border:1px s
 <section id="login">
   <form class="box" id="lf">
     <div class="brand" style="font-size:26px"><span class="lg"></span>Majoris Inc</div><p id="lt">Kirish oynasi</p>
+    <div id="rec" style="display:none"><label>Oldin kirgan profillar</label><div id="recl" style="display:flex;flex-wrap:wrap;gap:6px"></div></div>
     <label for="u">Login</label>
     <input id="u" autocomplete="username" autocapitalize="off">
     <label for="p">Parol</label>
@@ -296,14 +297,22 @@ document.querySelectorAll(".lg").forEach(function(e){e.innerHTML=LOGO});
 var US=[];try{US=JSON.parse(localStorage.getItem("majusers")||"[]")}catch(e){}
 function usv(){try{localStorage.setItem("majusers",JSON.stringify(US))}catch(e){}}
 async function H(p){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("majoris:"+p));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}catch(e){return"p:"+p}}
-function loginUI(){var f=!US.length;$("#lt").textContent=f?"Birinchi sozlash: dasturchi (superadmin) hisobini yarating":"Kirish oynasi";$("#lb").textContent=f?"Hisob yaratish":"Kirish";$("#lm").textContent=""}
+function recGet(){try{return JSON.parse(localStorage.getItem("majrecent")||"[]")}catch(e){return[]}}
+function recSet(a){try{localStorage.setItem("majrecent",JSON.stringify(a))}catch(e){}}
+function recAdd(l){var a=recGet().filter(function(x){return x!==l});a.unshift(l);recSet(a.slice(0,8))}
+function recUI(){var a=recGet().filter(function(l){return US.some(function(u){return u.l===l})}),box=$("#rec");
+if(!a.length){box.style.display="none";return}
+box.style.display="block";$("#recl").innerHTML=a.map(function(l){var u=US.find(function(x){return x.l===l});return'<span style="display:inline-flex;align-items:center;background:rgba(255,255,255,.2);border-radius:99px"><button type="button" data-rl="'+esc(l)+'" style="background:none;border:0;color:#fff;padding:6px 6px 6px 12px;cursor:pointer">'+esc(l)+(u&&u.n&&u.n!==l?" · "+esc(u.n):"")+'</button><button type="button" data-rx="'+esc(l)+'" aria-label="Ro\'yxatdan olib tashlash" style="background:none;border:0;color:#fff;opacity:.7;padding:6px 10px 6px 4px;cursor:pointer">✕</button></span>'}).join("");
+document.querySelectorAll("[data-rl]").forEach(function(b){b.onclick=function(){$("#u").value=b.dataset.rl;$("#p").focus()}});
+document.querySelectorAll("[data-rx]").forEach(function(b){b.onclick=function(){recSet(recGet().filter(function(x){return x!==b.dataset.rx}));recUI()}})}
+function loginUI(){recUI();var f=!US.length;$("#lt").textContent=f?"Birinchi sozlash: dasturchi (superadmin) hisobini yarating":"Kirish oynasi";$("#lb").textContent=f?"Hisob yaratish":"Kirish";$("#lm").textContent=""}
 $("#lf").onsubmit=async function(e){e.preventDefault();var l=$("#u").value.trim().toLowerCase(),p=$("#p").value;
 if(!l||p.length<6){$("#lm").textContent="Login kiriting, parol kamida 6 belgi bo'lsin.";return}
 var h=await H(p);
-if(!US.length){US.push({l:l,h:h,n:"Majoris Inc",r:"superadmin"});usv();enter(l);return}
+if(!US.length){US.push({l:l,h:h,n:"Majoris Inc",r:"superadmin"});usv();recAdd(l);enter(l);return}
 var u=US.find(function(x){return x.l===l&&x.h===h});
 if(!u){$("#lm").textContent="Login yoki parol noto'g'ri.";return}
-enter(l)};
+recAdd(l);enter(l)};
 function usersv(){var me=US.find(function(x){return x.l===user});
 if(!me||me.r!=="superadmin"){view.innerHTML='<div class="card">Bu bo\'lim faqat dasturchi (superadmin) uchun.</div>';return}
 view.innerHTML='<div class="card"><div class="bar"><button class="btn" id="uadd">+ Foydalanuvchi qo\'shish</button></div><p style="color:var(--mute);margin:0 0 10px">Xodimlarni shu yerda yaratasiz (login, parol, huquq) va o‘chirasiz. Barcha login va parollarni faqat siz boshqarasiz.</p><div class="scroll"><table class="rt"><thead><tr><th>№</th><th>Login</th><th>Ism</th><th>Huquq</th><th>Ulush</th><th></th></tr></thead><tbody>'+US.map(function(u,i){return'<tr><td>'+(i+1)+'</td><td>'+esc(u.l)+'</td><td>'+esc(u.n)+'</td><td>'+esc(ROLEN[u.r]||u.r)+'</td><td>'+(u.r==="LOR"?(u.pct==null?40:u.pct)+"%":"")+'</td><td style="white-space:nowrap"><button class="dbtn" data-up="'+i+'">Tahrirlash / parol</button> '+(u.l===user?"":'<button class="x" data-ux="'+i+'" aria-label="O\'chirish">✕</button>')+'</td></tr>'}).join("")+'</tbody></table></div></div>';
