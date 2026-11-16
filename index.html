@@ -166,7 +166,7 @@ var HOME={superadmin:"royxat",Admin:"royxat",Registrator:"royxat",Hamshira:"hams
 function role(){var a=US.find(function(x){return x.l===user});return a?a.r:""}
 function can(sec){return(ACC[role()]||ACC.Hamshira).indexOf(sec)>-1}
 function applyNav(){document.querySelectorAll("#nav [data-s]").forEach(function(a){a.style.display=can(a.dataset.s)?"":"none"});if(!can("dirs"))$("#mg").hidden=true}
-function route(){try{chbadge()}catch(e){}var h=(location.hash||"").slice(1);if(!h||!can(CFG[h]?"dirs":h))h=HOME[role()]||"hamshira";
+function route(){try{chbadge()}catch(e){}try{if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&!SET.some(function(x){return x.id==="imp1"}))migOb()}catch(e){console.error(e)}var h=(location.hash||"").slice(1);if(!h||!can(CFG[h]?"dirs":h))h=HOME[role()]||"hamshira";
 document.querySelectorAll("#nav a").forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+(h==="ombor"?"hisobotlar":h))});if(CFG[h]){$("#mg").hidden=false;$("#mt").setAttribute("aria-expanded","true");$("#mar").textContent="▴"}
 if(h==="dashboard")dash();else if(h==="hisobotlar")reports();else if(h==="xodimlar"&&role()==="superadmin")usersv();else if(CFG[h])dirv(h);else if(h==="ombor")ombor();else if(h==="users")usersv();else if(h==="navbat")navbatv();else if(h==="hamshira")workv("MUOLAJA");else if(h==="lor")workv("LOR");else if(h==="hisobotim")mydoc();else if(h==="ulush")ulush();else if(h==="tolov")tolovv();else if(h==="omj")omj();else if(h==="chat")chatv();else reg();}
 
@@ -339,11 +339,15 @@ MV.push({id:nid(),t:t==="out"?"out":"in",w:w,d:n,q:q,date:d,note:$("#obnt").valu
 function ohist(n){var w=ob.w,h=MV.filter(function(m){return m.d===n&&(w==="ALL"||m.w===w)}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
 $("#obhb").innerHTML='<h3 style="margin:0 0 8px">'+esc(n)+' — harakat tarixi</h3>'+T(["Sana","Turi","Miqdor","Izoh",""],h.map(function(m){return'<tr><td>'+m.date.split("-").reverse().join(".")+'</td><td>'+(m.t==="in"?"Kirim":"Sarf")+'</td><td class="num">'+(m.t==="in"?"+ ":"- ")+m.q+'</td><td><small>'+esc(m.note||"")+'</small></td><td>'+(m.rid?"":'<button class="x" data-dm="'+m.id+'" aria-label="O‘chirish">✕</button>')+'</td></tr>'}).join("")||'<tr><td colspan="5">Harakat yo‘q.</td></tr>');
 document.querySelectorAll("[data-dm]").forEach(function(b){b.onclick=function(){var i=MV.findIndex(function(m){return String(m.id)===b.dataset.dm});if(i>-1){MV.splice(i,1);mvs();omjf();ohist(n)}}});$("#obh").showModal()}
-function impOb(){if(SET.some(function(x){return x.id==="imp1"})){toast("Excel ma’lumoti allaqachon yuklangan");return}
-var add=function(w,n,q,d,note){if(!(q>0))return;if(!DIRS.dorilar.some(function(r){return r.n===n}))DIRS.dorilar.push({id:nid(),n:n});MV.push({id:nid(),t:"in",w:w,d:n,q:q,date:d,note:note})};
+var DMAP={"Renger 200":"Раствор Рингера","Analgin":"Анальгин","Askorbinka 2 gr":"Аскорбинка","Deksametazon":"Дексаметазон","Dimedrol":"Димедрол","Kaltsiy glyukonat 10 gr":"Кальция глюконат","Magniya sulfat":"Магния сульфат","Novokain":"Новокаин","Noshpa":"Но-шпа","Sistema":"Система","Suprastin":"Супрастин","Fizrastvor 100 gr":"Физраствор 100 мл","Fizrastvor 200 gr":"Физраствор 200 мл","Fizrastvor 5gr":"Физраствор 5 мл","Shprits 10gr":"Шприцы 10","Shprits 2gr":"Шприцы 2","Shprits 5gr":"Шприцы 5"};
+function impOb(){if(SET.some(function(x){return x.id==="imp1"})){toast("Excel ma’lumoti allaqachon yuklangan");return}migOb()}
+function migOb(){["muolaja","tekshiruvlar"].forEach(function(k){(DIRS[k]||[]).forEach(function(sv0){(sv0.rec||[]).forEach(function(c){if(DMAP[c.d])c.d=DMAP[c.d]})})});
+DIRS.dorilar.forEach(function(r){if(DMAP[r.n])r.a=1});MV=[];
+var add=function(w,n,q,d,note){if(!(q>0))return;var ex=DIRS.dorilar.find(function(r){return r.n===n});if(!ex)DIRS.dorilar.push({id:nid(),n:n});else if(ex.a)ex.a=0;MV.push({id:nid(),t:"in",w:w,d:n,q:q,date:d,note:note})};
 IMP.mu.forEach(function(x){add("MUOLAJA",x[0],x[1],"2026-09-30","Boshlang‘ich qoldiq (Excel)")});IMP.lor.forEach(function(x){add("LOR",x[0],x[1],"2026-09-30","Boshlang‘ich qoldiq (Excel)")});
 IMP.kir.forEach(function(x){add("MUOLAJA",x[1],x[2],x[0],"Kirim (Excel)")});Object.keys(IMP.sk).forEach(function(n){skset("ALL",n,IMP.sk[n])});
-SET.push({id:"imp1",v:1});setsv();sv();mvs();omj();toast("Excel ma’lumoti yuklandi")}
+rows.forEach(function(r){syncMV(r)});
+SET.push({id:"imp1",v:1});setsv();sv();mvs();save();if((location.hash||"")==="#omj")omj();toast("Excel ma’lumoti yuklandi")}
 
 var DOCS=["Alibek Lor","Odil Lor","Asliddin Lor"],PAYS=["Naqd","UzCard","Humo","Click","Payme","Uzum","AlifPay","Qarz","Chegirma"];
 var EXAMS=["Birlamchi LOR ko'rigi","Burun yondosh bo'shliqlarini yuvish","Tomoq yuvish","Qayta LOR ko'rigi","LOR maslahati"];
