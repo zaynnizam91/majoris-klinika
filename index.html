@@ -71,7 +71,7 @@ dialog input,dialog select{width:100%;padding:9px;margin:4px 0 12px;border:1px s
     <input id="u" autocomplete="username" autocapitalize="off">
     <label for="p">Parol</label>
     <input id="p" type="password" placeholder="Kamida 6 belgi" autocomplete="current-password">
-    <div id="lm" role="alert" style="min-height:20px;margin-top:10px;font-size:13px"></div><button class="btn w" id="lb" type="submit">Kirish</button>
+    <div id="lm" role="alert" style="min-height:20px;margin-top:10px;font-size:13px"></div><button class="btn w" id="lb" type="submit">Kirish</button><div id="syncmsg" data-nt style="font-size:12px;margin-top:12px;text-align:center;color:#ffd8a8">● Baza bilan ulanmoqda…</div>
   </form>
 </section>
 
@@ -457,7 +457,8 @@ function collNames(){return["rows","mv","users"].concat(Object.keys(DIRS).map(fu
 function arrOf(c){if(c==="rows")return rows;if(c==="mv")return MV;if(c==="users")return US;var k=c.slice(4);return DIRS[k]||(DIRS[k]=[])}
 function keyOf(c){return c==="users"?"l":"id"}
 function curOf(c){var m={},a=arrOf(c),k=keyOf(c);a.forEach(function(x){m[String(x[k])]=JSON.stringify(x)});return m}
-function setBadge(on){SYNC.online=on;var b=document.getElementById("syncb");if(b){b.style.color=on?"#2f9e44":"#e8590c";b.title=on?"Baza: onlayn":"Baza: oflayn";b.setAttribute("aria-label",b.title)}}
+function setBadge(on,msg){SYNC.online=on;SYNC.err=on?"":(msg||"");var b=document.getElementById("syncb");if(b){b.style.color=on?"#2f9e44":"#e8590c";b.title=on?"Baza: onlayn":"Baza: oflayn"+(msg?" — "+msg:"");b.setAttribute("aria-label",b.title)}
+var m=document.getElementById("syncmsg");if(m){m.textContent=on?"● Baza ulangan":"● Baza bilan aloqa yo'q"+(msg?": "+String(msg).slice(0,140):"");m.style.color=on?"#8ff0a4":"#ffd8a8"}}
 function persistAll(){try{localStorage.setItem("lorrows",JSON.stringify(rows));localStorage.setItem("lordirs",JSON.stringify(DIRS));localStorage.setItem("lormv",JSON.stringify(MV));localStorage.setItem("majusers",JSON.stringify(US))}catch(e){}}
 function syncSoon(){if(!SYNC.ready)return;clearTimeout(SYNC.tm);SYNC.tm=setTimeout(syncPush,400)}
 async function syncPush(){if(!SYNC.ready||SYNC.busy||SYNC.first)return;var out=[],marks=[];
@@ -467,7 +468,7 @@ Object.keys(sn).forEach(function(id){if(!(id in now)){out.push({coll:c,id:id,dat
 if(!out.length)return;SYNC.busy=true;
 try{for(var i=0;i<out.length;i+=300){await sbf("records?on_conflict=coll,id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(out.slice(i,i+300))});
 marks.slice(i,i+300).forEach(function(m){var sn=SYNC.snap[m[0]]||(SYNC.snap[m[0]]={});if(m[2]===null)delete sn[m[1]];else sn[m[1]]=m[2]})}
-setBadge(true)}catch(e){setBadge(false);console.warn("sync push",e.message)}
+setBadge(true)}catch(e){setBadge(false,e.message);console.warn("sync push",e.message)}
 SYNC.busy=false}
 function normTs(t){return String(t).replace(/(\.\d{3})\d+/,"$1")}
 function applyRemote(recs){var ch=false;
@@ -492,11 +493,11 @@ while(true){var r=await sbf("records?select=coll,id,data,deleted,updated_at&orde
 all.forEach(function(x){if(!mx||Date.parse(normTs(x.updated_at))>Date.parse(normTs(mx)))mx=x.updated_at});
 var ch=applyRemote(all);SYNC.ts=mx;setBadge(true);
 if(ch){persistAll();refreshView()}else if(SYNC.dirty)refreshView()}
-async function syncTick(){if(SYNC.pulling)return;SYNC.pulling=true;try{await syncPull();if(SYNC.first){SYNC.first=false}await syncPush()}catch(e){setBadge(false);console.warn("sync pull",e.message)}SYNC.pulling=false}
+async function syncTick(){if(SYNC.pulling)return;SYNC.pulling=true;try{await syncPull();if(SYNC.first){SYNC.first=false}await syncPush()}catch(e){setBadge(false,e.message);console.warn("sync pull",e.message)}SYNC.pulling=false}
 function syncInit(){var done=false;
 function ready(){if(done)return;done=true;SYNC.ready=true;try{loginUI()}catch(e){}}
 setTimeout(ready,7000);
-(async function(){SYNC.pulling=true;try{await syncPull();SYNC.first=false;await syncPush()}catch(e){setBadge(false);console.warn("sync init",e.message)}SYNC.pulling=false;ready();
+(async function(){SYNC.pulling=true;try{await syncPull();SYNC.first=false;await syncPush()}catch(e){setBadge(false,e.message);console.warn("sync init",e.message)}SYNC.pulling=false;ready();
 setInterval(syncTick,4000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)syncTick()});window.addEventListener("focus",syncTick);window.addEventListener("online",syncTick)})()}
 ["save","sv","usv","mvs"].forEach(function(n){var o=window[n];if(typeof o!=="function")return;window[n]=function(){var r=o.apply(this,arguments);syncSoon();return r}});
