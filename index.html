@@ -335,7 +335,7 @@ $("#fs").onchange=function(){var s=$("#fs").value;fxfill();ftofill("");dits=dits
 $("#df").onsubmit=function(e){if(!e.submitter||e.submitter.value!=="ok")return;
 var fnv=$("#fn").value.trim();if(!fnv){e.preventDefault();rtabs(0);$("#fn").focus();toast("Bemor F.I.Sh. kiriting");return}
 var to=$("#fto").value,pend=dits.filter(function(i){return i.pend});pend.forEach(function(i){i.to=to});
-var v={n:fnv.toUpperCase(),ph:$("#ft").value.trim(),cm:$("#fcm").value.trim(),s:$("#fs").value,to:to,its:dits},nr=null,tp=dits.length?revP(dits):(+$("#fp").value||0);
+var v={n:fnv.toUpperCase(),ph:($("#ft").value.replace(/\D/g,"").length>3?$("#ft").value.trim():""),cm:$("#fcm").value.trim(),s:$("#fs").value,to:to,its:dits},nr=null,tp=dits.length?revP(dits):(+$("#fp").value||0);
 if(editId){nr=Object.assign(rows.find(function(x){return x.id===editId}),v);nr.p=tp;toast("O‘zgarishlar saqlandi")}
 else{var d=new Date();nr=Object.assign({id:nid(),date:TODAY,t:pad(d.getHours())+":"+pad(d.getMinutes()),p:tp},v);rows.push(nr);if(st.to<TODAY)st.to=TODAY;toast("Bemor qo‘shildi"+(to?" va "+nm(to)+" ga yuborildi":" va "+(nr.s==="LOR"?"LOR":"Muolaja")+" xonasiga yuborildi"))}
 LG(editId?"Bemor tahrirlandi":"Bemor ro‘yxatga olindi",nr.n+" · "+nr.s+" · ishlar: "+((nr.its||[]).map(function(i){return i.n}).join(", ")||"—"));try{if(bkAdd(nr))sv()}catch(e){}applyPay(nr,pend,$("#fpt").value,+$("#fdc").value||0,$("#fpn").value.trim());pend.forEach(function(i){delete i.pend});recalc(nr);if(!editId&&nr.ph)setTimeout(function(){smsAuto(nr)},6000);
@@ -785,6 +785,10 @@ T(["Sana","Bemor","Ish","To‘lov turi","Summa","Ulush"],its.sort(function(a,b){
 if(canEd)out='<div style="margin:0 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label>Soliq % (karta/QR, Naqd va Click bundan mustasno): <input type="number" min="0" max="100" step="0.5" value="'+TAXP()+'" id="taxp" style="width:80px"></label><button class="chip" id="taxs">Saqlash</button></div>'+out;
 $("#ul").innerHTML=out;if(canEd)$("#taxs").onclick=function(){var v=parseFloat($("#taxp").value);if(isNaN(v)||v<0||v>100){toast("Foiz 0 dan 100 gacha bo‘lishi kerak");return}var x=SET.find(function(y){return y.id==="main"});if(!x){x={id:"main"};SET.push(x)}x.tax=v;setsv();toast("Soliq saqlandi: "+v+"%");ulush()};
 Array.prototype.forEach.call(document.querySelectorAll("[data-pcs]"),function(b){b.onclick=function(){var l=b.getAttribute("data-pcs"),inp=document.querySelector('[data-pc="'+l+'"]'),v=parseFloat(inp.value);if(isNaN(v)||v<0||v>100){toast("Foiz 0 dan 100 gacha bo‘lishi kerak");return}var u=US.filter(function(x){return x.l===l})[0];if(!u)return;u.pct=v;try{localStorage.setItem("majusers",JSON.stringify(US))}catch(e){}toast("Ulush saqlandi: "+v+"%");ulush()}})}
+function phFmt(v){var d=String(v).replace(/\D/g,"");if(d.indexOf("998")!==0)d="998"+d;d=d.slice(0,12);return"+998"+(d.length>3?" "+d.slice(3,5):"")+(d.length>5?" "+d.slice(5,8):"")+(d.length>8?" "+d.slice(8,10):"")+(d.length>10?" "+d.slice(10,12):"")}
+document.addEventListener("focusin",function(e){var t=e.target;if(t&&t.id==="ft"&&!t.value.trim()){t.value="+998 ";try{t.setSelectionRange(5,5)}catch(x){}}});
+document.addEventListener("input",function(e){var t=e.target;if(t&&t.id==="ft"&&(!e.inputType||e.inputType.indexOf("delete")!==0||t.value.replace(/\D/g,"").length>3))t.value=phFmt(t.value)});
+document.addEventListener("focusout",function(e){var t=e.target;if(t&&t.id==="ft"&&t.value.replace(/\D/g,"").length<=3)t.value=""});
 $("#mt2").onclick=function(){var o=$("#mg2").hidden;$("#mg2").hidden=!o;$("#mt2").setAttribute("aria-expanded",String(o));$("#mar2").textContent=o?"▴":"▾"};
 $("#mt").onclick=function(){var o=$("#mg").hidden;$("#mg").hidden=!o;$("#mt").setAttribute("aria-expanded",String(o));$("#mar").textContent=o?"▴":"▾"};
 /*SYNC*/
