@@ -201,7 +201,7 @@ var HOME={superadmin:"royxat",Admin:"royxat",Registrator:"royxat",Hamshira:"hams
 function role(){var a=US.find(function(x){return x.l===user});return a?a.r:""}
 function can(sec){return(ACC[role()]||ACC.Hamshira).indexOf(sec)>-1}
 function applyNav(){document.querySelectorAll("#nav [data-s]").forEach(function(a){a.style.display=can(a.dataset.s)?"":"none"});if(!can("dirs"))$("#mg").hidden=true}
-function fixPrices(){var ch=0;rows.forEach(function(r){var c=0;(r.its||[]).forEach(function(it){if(!it.paid&&!it.free&&!(+it.p>0)){var si=svcItem(it.t||r.s,it.n);if(si&&+si.p>0){it.p=+si.p;c=1}}});if(c){recalc(r);ch=1}});if(ch)save();return ch}
+function fixPrices(){var ch=0;rows.forEach(function(r){var c=0;(r.its||[]).forEach(function(it){if(!it.paid&&!it.free&&!(+it.p>0)){var si=svcItem(it.t||r.s,it.n);if(si&&+si.p>0){it.p=+si.p;c=1}}});if(c){recalc(r);ch=1}if((r.its||[]).length&&r.p!==revP(r.its)){recalc(r);ch=1}});if(ch)save();return ch}
 function route(){try{chbadge()}catch(e){}try{fixPrices()}catch(e){}document.body.classList.toggle("tvmode",(location.hash||"")==="#tv");try{if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&!SET.some(function(x){return x.id==="imp1"}))migOb();if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&SET.some(function(x){return x.id==="imp1"})&&!SET.some(function(x){return x.id==="imp2"}))migOb2();if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&!SET.some(function(x){return x.id==="imp3"}))migT();if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&SET.some(function(x){return x.id==="imp3"})&&!SET.some(function(x){return x.id==="imp4"}))migM();if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&SET.some(function(x){return x.id==="imp4"})&&!SET.some(function(x){return x.id==="imp5"}))migP();if(typeof SYNC!=="undefined"&&SYNC.ready&&!SYNC.first&&chadm()&&SET.some(function(x){return x.id==="imp5"})&&!SET.some(function(x){return x.id==="imp6"}))migU()}catch(e){console.error(e)}var h=(location.hash||"").slice(1);if(!h||!can(CFG[h]?"dirs":h))h=HOME[role()]||"hamshira";
 document.querySelectorAll("#nav a").forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+(h==="ombor"?"hisobotlar":h))});if(CFG[h]){$("#mg").hidden=false;$("#mt").setAttribute("aria-expanded","true");$("#mar").textContent="▴"}
 if(h==="dashboard")dash();else if(h==="hisobotlar")reports();else if(h==="xodimlar")(role()==="superadmin"?usersv:staffv)();else if(CFG[h])dirv(h);else if(h==="ombor")ombor();else if(h==="users")usersv();else if(h==="navbat")navbatv();else if(h==="hamshira")workv("MUOLAJA");else if(h==="lor")workv("LOR");else if(h==="hisobotim")mydoc();else if(h==="ulush")ulush();else if(h==="tolov")tolovv();else if(h==="tv")tvv();else if(h==="tg")tgv();else if(h==="omj")omj();else if(h==="chat")chatv();else reg();}
@@ -253,7 +253,7 @@ var dits=[];
 var PTYPES=["Naqd","UzCard","Humo","Click","Uzum","AlifPay","Payme"];
 function TAXP(){var x=SET.find(function(y){return y.id==="main"});return x&&x.tax!=null?x.tax:12}
 function taxed(pt){return !!pt&&pt!=="Naqd"&&pt!=="Click"&&pt!=="Bepul"}
-function revP(its){return its.reduce(function(a,i){return a+(i.free?0:i.p)},0)}
+function revP(its){return its.reduce(function(a,i){return a+(i.free||!i.paid?0:i.p)},0)}
 function netOf(it){return it.net!=null?it.net:it.p}
 function trOf(it){return it.tr!=null?it.tr:TAXP()}
 function taxOf(it){return taxed(it.pt)?Math.round(netOf(it)*trOf(it)/100):0}
