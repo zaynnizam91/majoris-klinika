@@ -278,7 +278,7 @@ function rowSt(r){var its=r.its||[];if(!its.length)return"rp";var np=its.filter(
 function pbook(){var m={},o=[];rows.slice().sort(function(a,b){return(a.date+a.t)<(b.date+b.t)?1:-1}).forEach(function(r){var k=(r.n||"").trim().toUpperCase();if(k&&!m[k]){m[k]={n:r.n,ph:r.ph||""};o.push(m[k])}});return o}
 function pfill(){var b=pbook();$("#fnl").innerHTML=b.map(function(x){return'<option value="'+esc(x.n)+'">'+esc(x.ph)+'</option>'}).join("");$("#ftl").innerHTML=b.filter(function(x){return x.ph}).map(function(x){return'<option value="'+esc(x.ph)+'">'+esc(x.n)+'</option>'}).join("")}
 function openDlg(i){try{pfill()}catch(e){}editId=i;var r=i?rows.find(function(x){return x.id===i}):{n:"",s:"LOR",ph:"",p:0,its:[]};
-var bo=$("#fpt").querySelector("[value=Bepul]");if(bo)bo.remove();if(chadm())$("#fpt").insertAdjacentHTML("afterbegin",'<option value="Bepul">Bepul (xodim — tushumga qo‘shilmaydi)</option>');$("#fn").value=r.n;$("#ft").value=r.ph;$("#fs").value=r.s;ftofill(r.to);dits=JSON.parse(JSON.stringify(r.its||[]));$("#fp").value=r.p||PRICE[r.s];$("#fpt").value="Naqd";$("#fdc").value="";$("#fpn").value="";fxfill();ditr();rtabs(0);$("#dlg").showModal();$("#fn").focus()}
+var bo=$("#fpt").querySelector("[value=Bepul]");if(bo)bo.remove();if(chadm())$("#fpt").insertAdjacentHTML("afterbegin",'<option value="Bepul">Bepul (xodim — tushumga qo‘shilmaydi)</option>');$("#fn").value=r.n;$("#ft").value=r.ph;$("#fs").value=r.s;ftofill(r.to);dits=JSON.parse(JSON.stringify(r.its||[]));$("#fp").value=r.p||0;$("#fpt").value="Naqd";$("#fdc").value="";$("#fpn").value="";fxfill();ditr();rtabs(0);$("#dlg").showModal();$("#fn").focus()}
 function payfill(){var pe=dits.filter(function(i){return i.pend}),sum=pe.reduce(function(a,i){return a+i.p},0),dc=Math.max(0,Math.min(+$("#fdc").value||0,sum)),pt=$("#fpt").value;
 $("#fpsum").innerHTML=pe.length&&pt==="Bepul"?'Yangi ishlar: <b>'+fmt(sum)+'</b> — <b>bepul yopiladi</b>: tushumga va shifokor ulushiga qo‘shilmaydi':pe.length?'Yangi ishlar: <b>'+fmt(sum)+'</b>'+(dc?' · Chegirma: <b>'+fmt(dc)+'</b>':'')+' · To‘lanadi: <b>'+fmt(sum-dc)+'</b>'+(pt?'':' <span class="red">(kassada qarz bo‘lib qoladi)</span>'):'<span style="color:var(--mute)">Yangi ish qo‘shilmagan.</span>'}
 $("#fdc").oninput=payfill;$("#fpt").onchange=payfill;
@@ -290,7 +290,7 @@ $("#fxl").innerHTML=dits.map(function(it,j){return'<div class="wi"><span>'+(it.d
 if(dits.length)$("#fp").value=sum;$("#fp").readOnly=dits.length>0;payfill()}
 $("#fxl").addEventListener("click",function(e){var b=e.target.closest("[data-dx]");if(b){dits.splice(+b.dataset.dx,1);ditr()}});
 $("#fxa").onclick=function(){var s=$("#fs").value,n=$("#fx").value;if(!n){toast("Avval ro‘yxatdan ish tanlang");return}var si=svcItem(s,n);dits.push({n:n,p:si&&si.p||0,t:s,paid:0,pend:1,done:0,by:""});ditr()};
-$("#fs").onchange=function(){var s=$("#fs").value;fxfill();ftofill("");dits=dits.filter(function(x){return x.t===s||x.done||x.paid});if(!dits.length)$("#fp").value=PRICE[s];ditr()};
+$("#fs").onchange=function(){var s=$("#fs").value;fxfill();ftofill("");dits=dits.filter(function(x){return x.t===s||x.done||x.paid});if(!dits.length)$("#fp").value=0;ditr()};
 $("#df").onsubmit=function(e){if(!e.submitter||e.submitter.value!=="ok")return;
 var fnv=$("#fn").value.trim();if(!fnv){e.preventDefault();rtabs(0);$("#fn").focus();toast("Bemor F.I.Sh. kiriting");return}
 var to=$("#fto").value,pend=dits.filter(function(i){return i.pend});pend.forEach(function(i){i.to=to});
