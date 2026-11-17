@@ -3,7 +3,7 @@
 //   TG_CHAT_ID          – default group
 //   TG_CHAT_ID_LOR      – LOR doctors' group (optional, falls back to TG_CHAT_ID)
 //   TG_CHAT_ID_NURSE    – nurses' group (optional)
-//   TG_CHAT_ID_ADMIN    – admins/cashiers' group (optional)
+//   TG_CHAT_ID_KASSA    – cashiers' group (optional; alt: TG_CHAT_ID_ADMIN)
 const SB = "https://pccggjtidnxtwhfegmeq.supabase.co";
 const KEY = "sb_publishable_LIgpNDvbE1-RHqiFK20HzA_C3VTeXI0";
 const H = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
@@ -48,6 +48,17 @@ exports.handler = async (ev) => {
     if (!chat) return out(503, { ok: false, error: "guruh ID sozlanmagan" });
     const r = await send(T, chat, `✅ ${ROLES[u.r].label} ${u.n} ishga keldi (${t})`);
     return out(r.ok ? 200 : 502, r);
+  }
+  if (b.type === "chats" && (u.r === "superadmin" || u.r === "Admin")) {
+    const r = await fetch(`https://api.telegram.org/bot${T}/getUpdates?limit=100&allowed_updates=${encodeURIComponent('["message","my_chat_member","channel_post"]')}`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) return out(502, { ok: false, error: j.description || "getUpdates xatosi" });
+    const m = {};
+    for (const x of j.result || []) {
+      const c = (x.message || x.channel_post || x.my_chat_member || {}).chat;
+      if (c && c.id < 0) m[c.id] = { id: c.id, title: c.title || String(c.id), type: c.type };
+    }
+    return out(200, { ok: true, chats: Object.values(m) });
   }
   if (b.type === "test" && (u.r === "superadmin" || u.r === "Admin")) {
     const done = {}, res = [];
