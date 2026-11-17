@@ -145,7 +145,7 @@ select option{background:var(--panel);color:var(--ink)}
 <dialog id="dlg">
   <form method="dialog" id="df">
     <div class="tabs" id="rtabs"><button type="button" data-rt="0" class="on">Bemor</button><button type="button" data-rt="1">Xona va xodim</button><button type="button" data-rt="2">Ishlar</button><button type="button" data-rt="3">To'lov</button></div>
-    <div data-rp="0"><label for="fn">Bemor F.I.Sh.</label><input id="fn" autocomplete="off"><label for="ft">Telefon</label><input id="ft" inputmode="tel" placeholder="+998 90 123 45 67"></div>
+    <div data-rp="0"><label for="fn">Bemor F.I.Sh.</label><input id="fn" autocomplete="off" list="fnl"><datalist id="fnl"></datalist><label for="ft">Telefon</label><input id="ft" inputmode="tel" placeholder="+998 90 123 45 67" list="ftl"><datalist id="ftl"></datalist></div>
     <div data-rp="1" hidden><label for="fs">Qayerga yuboriladi (xona)</label>
     <select id="fs"><option>LOR</option><option>MUOLAJA</option></select>
     <label for="fto">Kimga keldi (tekshiruvchi)</label><select id="fto"></select>
@@ -268,11 +268,16 @@ function stf(room){var rl=room==="LOR"?"LOR":"Hamshira";return US.filter(functio
 function ftofill(sel){$("#fto").innerHTML='<option value="">— Belgilanmagan —</option>'+stf($("#fs").value).map(function(u){return'<option value="'+esc(u.l)+'">'+esc(u.n)+'</option>'}).join("");$("#fto").value=sel||""}
 function rtabs(n){document.querySelectorAll("[data-rt]").forEach(function(b){b.classList.toggle("on",+b.dataset.rt===n)});document.querySelectorAll("[data-rp]").forEach(function(d){d.hidden=+d.dataset.rp!==n})}
 document.querySelectorAll("[data-rt]").forEach(function(b){b.onclick=function(){rtabs(+b.dataset.rt)}});
-function openDlg(i){editId=i;var r=i?rows.find(function(x){return x.id===i}):{n:"",s:"LOR",ph:"",p:0,its:[]};
+function pbook(){var m={},o=[];rows.slice().sort(function(a,b){return(a.date+a.t)<(b.date+b.t)?1:-1}).forEach(function(r){var k=(r.n||"").trim().toUpperCase();if(k&&!m[k]){m[k]={n:r.n,ph:r.ph||""};o.push(m[k])}});return o}
+function pfill(){var b=pbook();$("#fnl").innerHTML=b.map(function(x){return'<option value="'+esc(x.n)+'">'+esc(x.ph)+'</option>'}).join("");$("#ftl").innerHTML=b.filter(function(x){return x.ph}).map(function(x){return'<option value="'+esc(x.ph)+'">'+esc(x.n)+'</option>'}).join("")}
+function openDlg(i){try{pfill()}catch(e){}editId=i;var r=i?rows.find(function(x){return x.id===i}):{n:"",s:"LOR",ph:"",p:0,its:[]};
 var bo=$("#fpt").querySelector("[value=Bepul]");if(bo)bo.remove();if(chadm())$("#fpt").insertAdjacentHTML("afterbegin",'<option value="Bepul">Bepul (xodim — tushumga qo‘shilmaydi)</option>');$("#fn").value=r.n;$("#ft").value=r.ph;$("#fs").value=r.s;ftofill(r.to);dits=JSON.parse(JSON.stringify(r.its||[]));$("#fp").value=r.p||PRICE[r.s];$("#fpt").value="Naqd";$("#fdc").value="";$("#fpn").value="";fxfill();ditr();rtabs(0);$("#dlg").showModal();$("#fn").focus()}
 function payfill(){var pe=dits.filter(function(i){return i.pend}),sum=pe.reduce(function(a,i){return a+i.p},0),dc=Math.max(0,Math.min(+$("#fdc").value||0,sum)),pt=$("#fpt").value;
 $("#fpsum").innerHTML=pe.length&&pt==="Bepul"?'Yangi ishlar: <b>'+fmt(sum)+'</b> — <b>bepul yopiladi</b>: tushumga va shifokor ulushiga qo‘shilmaydi':pe.length?'Yangi ishlar: <b>'+fmt(sum)+'</b>'+(dc?' · Chegirma: <b>'+fmt(dc)+'</b>':'')+' · To‘lanadi: <b>'+fmt(sum-dc)+'</b>'+(pt?'':' <span class="red">(kassada qarz bo‘lib qoladi)</span>'):'<span style="color:var(--mute)">Yangi ish qo‘shilmagan.</span>'}
 $("#fdc").oninput=payfill;$("#fpt").onchange=payfill;
+document.addEventListener("input",function(e){var t=e.target;if(!t||(t.id!=="fn"&&t.id!=="ft"))return;var d=function(x){return String(x||"").replace(/\D/g,"")};
+if(t.id==="fn"){var v=t.value.trim().toUpperCase(),x=pbook().find(function(y){return y.n.trim().toUpperCase()===v});if(x&&x.ph&&!$("#ft").value.trim())$("#ft").value=x.ph}
+else{var q=d(t.value);if(q.length>=9){var y=pbook().find(function(z){return d(z.ph)===q});if(y&&!$("#fn").value.trim())$("#fn").value=y.n.toUpperCase()}}});
 function ditr(){var sum=dits.reduce(function(a,i){return a+i.p},0);
 $("#fxl").innerHTML=dits.map(function(it,j){return'<div class="wi"><span>'+(it.done?"✓ ":"")+esc(it.n)+' <small>'+fmt(it.p)+(it.to?" · "+esc(nm(it.to)):"")+'</small>'+(it.paid||it.pend?"":' <span class="red">to‘lanmagan</span>')+'</span>'+((it.done&&(it.paid||!chadm()))?"":'<button type="button" class="x" data-dx="'+j+'" aria-label="Olib tashlash">✕</button>')+'</div>'}).join("");
 if(dits.length)$("#fp").value=sum;$("#fp").readOnly=dits.length>0;payfill()}
