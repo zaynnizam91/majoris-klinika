@@ -190,7 +190,7 @@ function inRange(r){return r.date>=st.from&&r.date<=st.to}
 
 var user="";try{user=localStorage.getItem("lorusr")||""}catch(e){}
 
-function enter(u){var a=US.find(function(x){return x.l===u});if(!a){loginUI();return}user=u;try{localStorage.setItem("lorusr",u)}catch(e){}$("#who").textContent=a.n+" · "+(ROLEN[a.r]||a.r);applyNav();$("#login").style.display="none";$("#app").style.display="block";$("#p").value="";try{tgArrive(a)}catch(e){}try{presBeat()}catch(e){}route()}
+function enter(u,fresh){var a=US.find(function(x){return x.l===u});if(!a){loginUI();return}user=u;try{localStorage.setItem("lorusr",u)}catch(e){}$("#who").textContent=a.n+" · "+(ROLEN[a.r]||a.r);applyNav();$("#login").style.display="none";$("#app").style.display="block";$("#p").value="";try{tgArrive(a,fresh)}catch(e){}try{presBeat()}catch(e){}route()}
 $("#out").onclick=function(){try{presOff()}catch(e){}try{localStorage.removeItem("lorusr")}catch(e){}$("#app").style.display="none";$("#login").style.display="grid";loginUI()};
 window.addEventListener("hashchange",route);
 (function(){var cl=function(){document.body.classList.remove("menu-open")};$("#mnu").onclick=function(){document.body.classList.toggle("menu-open")};$("#ovl").onclick=cl;window.addEventListener("hashchange",cl);$("#nav").addEventListener("click",function(e){if(e.target.closest("a"))cl()})})();window.addEventListener("resize",function(){if((location.hash||"")==="#tv"&&user)try{route()}catch(e){}});
@@ -429,10 +429,16 @@ SET.push({id:"imp1",v:1},{id:"imp2",v:1});setsv();sv();mvs();save();if((location
 /* ---- Telegram ---- */
 var TGF="/.netlify/functions/tg",SMSF="/.netlify/functions/sms";
 function tgOn(){var x=SET.find(function(y){return y.id==="tgcfg"});return!x||x.on!==0}
-function tgArrive(a){if(["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:")return;var id="tgs:"+TODAY+":"+a.l;if(SET.some(function(x){return x.id===id}))return;
-var m={id:id,v:hhmm()};SET.push(m);setsv();
-function undo(why){var i=SET.indexOf(m);if(i>-1){SET.splice(i,1);setsv()}TGERR=(hhmm()+" · "+a.l+" · "+(why||"xato"));try{localStorage.setItem("tgerr",TGERR)}catch(e){}var ei="tge:"+a.l,ex=SET.find(function(y){return y.id===ei});if(!ex){ex={id:ei};SET.push(ex)}ex.v=TGERR;ex.d=TODAY;setsv()}
-fetch(TGF,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"arrive",login:a.l})}).then(function(r){return r.json().catch(function(){return{ok:false,error:"server javobi noto‘g‘ri (HTTP "+r.status+")"}})}).then(function(j){if(!j.ok)undo(j.error||"yuborilmadi");else{TGERR="";try{localStorage.removeItem("tgerr")}catch(e){}var k=SET.findIndex(function(y){return y.id==="tge:"+a.l});if(k>-1){SET.splice(k,1);setsv()}}}).catch(function(e){undo("tarmoq xatosi")})}
+function tgArrive(a,fresh){if(["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:")return;
+if(fresh){TGPEND=a;TGTRY=0}else if(!TGPEND||TGPEND.l!==a.l)return;
+var cur=TGPEND;if(TGBUSY)return;TGBUSY=1;
+function fail(why){TGBUSY=0;TGERR=(hhmm()+" · "+a.l+" · "+(why||"xato"));try{localStorage.setItem("tgerr",TGERR)}catch(e){}var ei="tge:"+a.l,ex=SET.find(function(y){return y.id===ei});if(!ex){ex={id:ei};SET.push(ex)}ex.v=TGERR;ex.d=TODAY;setsv()}
+fetch(TGF,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"arrive",login:a.l})}).then(function(r){return r.json().catch(function(){return{ok:false,error:"server javobi noto‘g‘ri (HTTP "+r.status+")"}})}).then(function(j){
+if(!j.ok){fail(j.error||"yuborilmadi");return}
+TGBUSY=0;if(TGPEND===cur)TGPEND=null;TGERR="";try{localStorage.removeItem("tgerr")}catch(e){}
+var k=SET.findIndex(function(y){return y.id==="tge:"+a.l});if(k>-1)SET.splice(k,1);
+var id="tgs:"+TODAY+":"+a.l,m=SET.find(function(y){return y.id===id});if(!m){m={id:id};SET.push(m)}m.v=hhmm();setsv()}).catch(function(){fail("tarmoq xatosi")})}
+var TGPEND=null,TGBUSY=0;
 var TGERR="",TGTRY=0;try{TGERR=localStorage.getItem("tgerr")||""}catch(e){}
 function smsAuto(r,n){if(!r||!r.ph||location.protocol==="file:")return;n=n||0;
 fetch(SMSF,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"patient",login:user,rid:String(r.id)})}).then(function(x){return x.json()}).then(function(j){
@@ -452,7 +458,7 @@ var l=SET.filter(function(x){return x.id.indexOf("tgs:"+TODAY+":")===0});
 $("#tgl").innerHTML=l.length?l.map(function(x){var uu=US.find(function(y){return y.l===x.id.split(":")[2]});return'<div class="wi"><span>'+esc(nm(x.id.split(":")[2]))+(uu?' <small>'+esc(ROLEN[uu.r]||uu.r)+'</small>':"")+'</span><small>'+esc(x.v||"")+'</small></div>'}).join(""):'<p style="color:var(--mute);margin:0">Hozircha yo‘q.</p>';var te=SET.filter(function(x){return x.id.indexOf("tge:")===0&&x.d===TODAY});$("#tge").innerHTML=te.length?'<div class="card" style="border-color:#d33;margin:0 0 12px"><b style="color:#d33">Yuborilmagan xabarlar</b>'+te.map(function(x){return'<div class="wi"><small>'+esc(x.v||"")+'</small></div>'}).join("")+"</div>":""}
 /* ---- Ishdagi xodimlar (login qilganda avtomat) ---- */
 function presOn(r){return r==="LOR"||r==="Hamshira"}
-function presBeat(){try{fixPrices()}catch(e){}var a=US.find(function(x){return x.l===user});if(a&&TGTRY<6){TGTRY++;try{tgArrive(a)}catch(e){}}if(!a||!presOn(a.r))return;var id="on:"+a.l,x=SET.find(function(y){return y.id===id});
+function presBeat(){try{fixPrices()}catch(e){}var a=US.find(function(x){return x.l===user});if(a&&TGPEND&&TGTRY<6){TGTRY++;try{tgArrive(a)}catch(e){}}if(!a||!presOn(a.r))return;var id="on:"+a.l,x=SET.find(function(y){return y.id===id});
 if(!x){x={id:id};SET.push(x)}if(x.d!==TODAY||!x.ts||Date.now()-x.ts>300000){x.since=hhmm()}x.d=TODAY;x.ts=Date.now();setsv()}
 function presOff(){var x=SET.find(function(y){return y.id==="on:"+user});if(x){x.ts=0;setsv()}}
 function onduty(role){return SET.filter(function(x){if(x.id.indexOf("on:")!==0||x.d!==TODAY||!x.ts||Date.now()-x.ts>300000)return false;var u=US.find(function(y){return y.l===x.id.slice(3)});return u&&u.r===role}).map(function(x){var u=US.find(function(y){return y.l===x.id.slice(3)});return{n:u.n,s:x.since||""}})}
@@ -594,7 +600,7 @@ var h=await H(p);
 if(!US.length){US.push({l:l,h:h,n:"Majoris Inc",r:"superadmin"});usv();recAdd(l);enter(l);return}
 var u=US.find(function(x){return x.l===l&&x.h===h});
 if(!u){$("#lm").textContent="Login yoki parol noto'g'ri.";return}
-recAdd(l);enter(l)};
+recAdd(l);enter(l,1)};
 function staffv(){view.innerHTML='<div class="card"><h2 style="margin:0 0 8px">Xodimlar</h2><div class="scroll"><table class="rt"><thead><tr><th>№</th><th>Ism</th><th>Huquq</th></tr></thead><tbody>'+US.map(function(u,i){return'<tr><td>'+(i+1)+'</td><td>'+esc(u.n)+'</td><td>'+esc(ROLEN[u.r]||u.r)+'</td></tr>'}).join("")+'</tbody></table></div><p style="color:var(--mute);margin:10px 0 0"><small>Xodimlarni qo‘shish va o‘chirishni dasturchi bajaradi.</small></p></div>'}
 function usersv(){var me=US.find(function(x){return x.l===user});
 if(!me||me.r!=="superadmin"){view.innerHTML='<div class="card">Bu bo\'lim faqat dasturchi (superadmin) uchun.</div>';return}
