@@ -28,7 +28,7 @@ aside a{display:block;padding:10px 12px;border-radius:8px;color:#dbe6ff;text-dec
 aside a.on,aside a:hover{background:var(--side2);color:#fff}
 main{margin-left:230px;padding:18px 22px 90px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-weight:600}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}.stk{position:sticky;top:0;z-index:30;background:var(--panel);padding:8px 0 2px;margin:0 0 4px;box-shadow:0 6px 8px -8px rgba(0,0,0,.5)}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
 .bar input,.bar select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
 .bar .grow{flex:1;min-width:160px}
@@ -60,7 +60,7 @@ body.menu-open #ovl{opacity:1;pointer-events:auto}
 #mnu{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;font-size:22px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;margin-right:8px;flex:none}
 aside a{padding:13px 12px;font-size:16px}
 main{margin-left:0;padding:0 10px calc(90px + env(safe-area-inset-bottom))}
-.top{position:sticky;top:0;z-index:40;background:var(--bg);padding:8px 0;margin:0 0 8px;gap:6px;flex-wrap:nowrap;font-size:14px}
+.stk{top:58px}.top{position:sticky;top:0;z-index:40;background:var(--bg);padding:8px 0;margin:0 0 8px;gap:6px;flex-wrap:nowrap;font-size:14px}
 .top #who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .top .langsel{width:62px;font-size:13px;padding:6px 2px!important}
 .top .btn{padding:8px 10px}
@@ -246,7 +246,7 @@ var l=r.filter(function(x){return x.s==="LOR"}).length;
 view.innerHTML='<div class="stats"><div class="stat"><span>Bugungi qabullar</span><strong>'+r.length+'</strong></div><div class="stat"><span>LOR</span><strong>'+l+'</strong></div><div class="stat"><span>Muolaja</span><strong>'+(r.length-l)+'</strong></div><div class="stat"><span>Bugungi tushum</span><strong style="font-size:20px">'+fmt(sum)+'</strong></div></div><div class="card"><button class="btn" onclick="location.hash=\'#royxat\'">Bemor qabul qilish</button></div>'+dchart()}
 
 function reg(){
-view.innerHTML='<div class="card"><div class="brand">'+LOGO+'<span>Majoris Inc</span></div><div class="bar"><button class="btn" id="add" title="Tezkor tugma: N">+ Yangi bemor</button><button class="btn alt" id="psb" title="Bemor qidirish">🔍 Bemor qidirish</button>'+dateBar()+'<input class="grow" id="sq" placeholder="Ism yoki telefon bo\'yicha qidiruv ( / )" value="'+esc(st.q)+'"></div><div class="bar"><div class="chips" id="ch"></div></div><div class="scroll"><table><thead><tr><th>№</th><th>Kelgan vaqti</th><th>Bemor</th><th>Xizmat</th><th>Narxi</th><th></th></tr></thead><tbody id="tb"></tbody></table></div><div class="foot"><span id="cnt"></span><b id="sum"></b></div></div>';
+view.innerHTML='<div class="card"><div class="brand">'+LOGO+'<span>Majoris Inc</span></div><div class="stk"><div class="bar"><button class="btn" id="add" title="Tezkor tugma: N">+ Yangi bemor</button><button class="btn alt" id="psb" title="Bemor qidirish">🔍 Bemor qidirish</button>'+dateBar()+'<input class="grow" id="sq" placeholder="Ism yoki telefon bo\'yicha qidiruv ( / )" value="'+esc(st.q)+'"></div><div class="bar"><div class="chips" id="ch"></div></div></div><div class="scroll"><table><thead><tr><th>№</th><th>Kelgan vaqti</th><th>Bemor</th><th>Xizmat</th><th>Narxi</th><th></th></tr></thead><tbody id="tb"></tbody></table></div><div class="foot"><span id="cnt"></span><b id="sum"></b></div></div>';
 bindDates(reg);$("#add").onclick=function(){openDlg(null)};$("#psb").onclick=openPs;
 $("#sq").oninput=function(e){st.q=e.target.value;fill()};fill()}
 function fill(){var t=st.q.toLowerCase(),base=rows.filter(inRange).filter(function(r){return(r.n+" "+r.ph).toLowerCase().indexOf(t)>-1});
