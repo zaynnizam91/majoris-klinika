@@ -760,7 +760,7 @@ $("#kq").oninput=fill;fill()}
 function kunhis(){view.innerHTML='<div class="card"><h2 style="margin:0 0 8px">Kunlik hisob</h2><div class="bar">'+dateBar()+'<button class="chip" id="kpr">Chop etish</button></div><div id="kh"></div></div>';bindDates(kunhis);$("#kpr").onclick=function(){window.print()};
 var L=0,Mu=0,doc=0,pt={};
 rows.forEach(function(r){(r.its||[]).forEach(function(it){var dd=it.dd||r.date;if(!(it.done&&it.paid&&!it.free)||dd<st.from||dd>st.to)return;var n=netOf(it),t=it.t||r.s;
-if(t==="LOR"){L+=n;var d=US.find(function(u){return u.l===it.by});doc+=shareOf(it,d&&d.pct!=null?d.pct:40)}else Mu+=n;
+if(t==="LOR"){L+=n;var dl=US.filter(function(u){return u.r==="LOR"}),d=dl.find(function(u){return u.l===it.by})||(!it.by&&dl.length===1?dl[0]:null);if(d)doc+=shareOf(it,d.pct!=null?d.pct:40)}else Mu+=n;
 var k=it.pt||"Naqd";pt[k]=(pt[k]||0)+n})});
 var tot=L+Mu,NC=[["Terminal (UzCard)","UzCard"],["Humo","Humo"],["Karta (Click)","Click"],["Uzum","Uzum"],["QR (Payme)","Payme"],["AlifPay","AlifPay"]],nc=0;
 var lines=NC.filter(function(x){return pt[x[1]]>0||x[1]!=="AlifPay"}).map(function(x){var v=pt[x[1]]||0;nc+=v;return'<div class="wi"><span>'+x[0]+'</span><b>− '+fmt(v)+'</b></div>'}).join("");
