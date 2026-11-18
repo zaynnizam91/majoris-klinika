@@ -33,7 +33,8 @@ exports.handler = async (ev) => {
   if (ev.httpMethod === "OPTIONS") return out(204, {});
   if (ev.httpMethod === "GET") {
     const g = (r) => !!(T && chatFor(r));
-    return out(200, { configured: !!(T && (process.env.TG_CHAT_ID || process.env.TG_CHAT_ID_LOR || process.env.TG_CHAT_ID_NURSE || process.env.TG_CHAT_ID_KASSA || process.env.TG_CHAT_ID_ADMIN)), groups: { lor: g("LOR"), nurse: g("Hamshira"), kassa: g("Registrator") } });
+    const src = (r) => { const o = ROLES[r]; const n = [o.env, o.alt, "TG_CHAT_ID"].find((k) => k && process.env[k]); return n ? `${n} …${String(process.env[n]).slice(-5)}` : ""; };
+    return out(200, { configured: !!(T && (process.env.TG_CHAT_ID || process.env.TG_CHAT_ID_LOR || process.env.TG_CHAT_ID_NURSE || process.env.TG_CHAT_ID_KASSA || process.env.TG_CHAT_ID_ADMIN)), groups: { lor: g("LOR"), nurse: g("Hamshira"), kassa: g("Registrator") }, src: { lor: src("LOR"), nurse: src("Hamshira"), kassa: src("Registrator") }, bot: !!T });
   }
   if (ev.httpMethod !== "POST") return out(405, { ok: false });
   if (!T) return out(503, { ok: false, error: "TG_BOT_TOKEN sozlanmagan" });
