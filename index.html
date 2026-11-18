@@ -347,7 +347,7 @@ var to=$("#fto").value,pend=dits.filter(function(i){return i.pend});pend.forEach
 var v={n:fnv.toUpperCase(),ph:($("#ft").value.replace(/\D/g,"").length>3?$("#ft").value.trim():""),cm:$("#fcm").value.trim(),s:$("#fs").value,to:to,its:dits},nr=null,tp=dits.length?revP(dits):(+$("#fp").value||0);
 if(editId){nr=Object.assign(rows.find(function(x){return x.id===editId}),v);nr.p=tp;toast("O‘zgarishlar saqlandi")}
 else{var d=new Date();nr=Object.assign({id:nid(),date:TODAY,t:pad(d.getHours())+":"+pad(d.getMinutes()),p:tp},v);rows.push(nr);if(st.to<TODAY)st.to=TODAY;toast("Bemor qo‘shildi"+(to?" va "+nm(to)+" ga yuborildi":" va "+(nr.s==="LOR"?"LOR":"Muolaja")+" xonasiga yuborildi"))}
-LG(editId?"Bemor tahrirlandi":"Bemor ro‘yxatga olindi",nr.n+" · "+nr.s+" · ishlar: "+((nr.its||[]).map(function(i){return i.n}).join(", ")||"—"));try{if(bkAdd(nr))sv()}catch(e){}applyPay(nr,pend,$("#fpt").value,+$("#fdc").value||0,$("#fpn").value.trim());pend.forEach(function(i){delete i.pend});recalc(nr);if(!editId&&nr.ph)setTimeout(function(){smsAuto(nr)},6000);
+LG(editId?"Bemor tahrirlandi":"Bemor ro‘yxatga olindi",nr.n+" · "+nr.s+" · ishlar: "+((nr.its||[]).map(function(i){return i.n}).join(", ")||"—"));try{if(bkAdd(nr))sv()}catch(e){}applyPay(nr,pend,$("#fpt").value,+$("#fdc").value||0,$("#fpn").value.trim());pend.forEach(function(i){delete i.pend;if(chadm()&&!i.done){i.done=1;i.by=i.to||to||"";i.dd=TODAY}});recalc(nr);if(!editId&&nr.ph)setTimeout(function(){smsAuto(nr)},6000);
 var w=syncMV(nr);if(w.length)toast("Omborda yetarli emas: "+w.join(", "));
 save();if((location.hash||"#royxat")==="#royxat")fill();else route()};
 
