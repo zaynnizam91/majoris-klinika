@@ -50,6 +50,12 @@ exports.handler = async (ev) => {
     const r = await send(T, chat, `✅ ${ROLES[u.r].label} ${u.n} ishga keldi (${t})`);
     return out(r.ok ? 200 : 502, r);
   }
+  if (b.type === "leave" && ROLES[u.r]) {
+    const chat = chatFor(u.r);
+    if (!chat) return out(503, { ok: false, error: "guruh ID sozlanmagan" });
+    const r = await send(T, chat, `🏁 ${ROLES[u.r].label} ${u.n} ishdan ketdi (${t})`);
+    return out(r.ok ? 200 : 502, r);
+  }
   if (b.type === "chats" && (u.r === "superadmin" || u.r === "Admin")) {
     const r = await fetch(`https://api.telegram.org/bot${T}/getUpdates?limit=100&allowed_updates=${encodeURIComponent('["message","my_chat_member","channel_post"]')}`);
     const j = await r.json().catch(() => ({}));

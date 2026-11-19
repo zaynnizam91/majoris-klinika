@@ -203,7 +203,7 @@ function inRange(r){return r.date>=st.from&&r.date<=st.to}
 var user="";try{user=localStorage.getItem("lorusr")||""}catch(e){}
 
 function enter(u,fresh){var a=US.find(function(x){return x.l===u});if(!a){loginUI();return}user=u;try{localStorage.setItem("lorusr",u)}catch(e){}$("#who").textContent=a.n+" · "+(ROLEN[a.r]||a.r);applyNav();$("#login").style.display="none";$("#app").style.display="block";$("#p").value="";if(fresh)LG("Tizimga kirdi",a.n+" ("+(ROLEN[a.r]||a.r)+")");try{tgArrive(a,fresh)}catch(e){}try{presBeat()}catch(e){}route()}
-$("#out").onclick=function(){try{presOff()}catch(e){}try{localStorage.removeItem("lorusr")}catch(e){}$("#app").style.display="none";$("#login").style.display="grid";loginUI()};
+$("#out").onclick=function(){try{tgLeave()}catch(e){}try{presOff()}catch(e){}try{localStorage.removeItem("lorusr")}catch(e){}$("#app").style.display="none";$("#login").style.display="grid";loginUI()};
 window.addEventListener("hashchange",route);
 (function(){var cl=function(){document.body.classList.remove("menu-open")};$("#mnu").onclick=function(){document.body.classList.toggle("menu-open")};$("#ovl").onclick=cl;window.addEventListener("hashchange",cl);$("#nav").addEventListener("click",function(e){if(e.target.closest("a"))cl()})})();window.addEventListener("resize",function(){if((location.hash||"")==="#tv"&&user)try{route()}catch(e){}});
 document.addEventListener("keydown",function(e){var tg=e.target.tagName;if(e.key==="/"&&tg!=="INPUT"&&$("#sq")){e.preventDefault();$("#sq").focus()}if(e.key==="n"&&tg!=="INPUT"&&tg!=="SELECT"&&$("#add")&&!$("#dlg").open){$("#add").click();e.preventDefault()}});
@@ -525,6 +525,7 @@ SET.push({id:"imp1",v:1},{id:"imp2",v:1});setsv();sv();mvs();save();if((location
 /* ---- Telegram ---- */
 var TGF="/.netlify/functions/tg",SMSF="/.netlify/functions/sms";
 function tgOn(){var x=SET.find(function(y){return y.id==="tgcfg"});return!x||x.on!==0}
+function tgLeave(){var a=US.find(function(x){return x.l===user});if(!a||["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:")return;try{fetch(TGF,{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"leave",login:a.l})}).catch(function(){})}catch(e){}}
 function tgArrive(a,fresh){if(["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:")return;
 if(fresh){TGPEND=a;TGTRY=0}else if(!TGPEND||TGPEND.l!==a.l)return;
 var cur=TGPEND;if(TGBUSY)return;TGBUSY=1;
