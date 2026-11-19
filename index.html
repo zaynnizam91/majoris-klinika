@@ -61,6 +61,7 @@ dialog input,dialog select{width:100%;padding:9px;margin:4px 0 12px;border:1px s
 @media(max-width:760px){
 html{-webkit-text-size-adjust:100%}
 html,body{max-width:100vw;overflow-x:hidden}
+main,.top{zoom:.86}
 main select,main input,main textarea{max-width:100%;min-width:0;box-sizing:border-box}
 .bar>select{flex:1 1 0;min-width:0;width:auto}
 .bar{flex-wrap:wrap}
@@ -91,7 +92,7 @@ dialog{width:96%!important;max-width:96%!important;max-height:92dvh;overflow:aut
 #chl>b{display:none}
 #chl>div{display:flex;gap:6px;margin:0!important}
 #chl .chip{width:auto!important;margin:0!important;flex:none;white-space:nowrap}
-#chm{height:calc(100dvh - 330px)!important;min-height:200px}
+#chm{height:calc((100dvh - 330px)/.86)!important;min-height:200px}
 .chwrap>div{min-width:0!important;width:100%;flex:none!important}#chm{width:100%;box-sizing:border-box}#cht{flex:1 1 auto!important;min-width:0}.cm{max-width:88%}
 .tabs button{padding:10px 10px}
 }
