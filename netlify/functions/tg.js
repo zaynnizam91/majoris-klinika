@@ -53,7 +53,8 @@ exports.handler = async (ev) => {
   if (b.type === "leave" && ROLES[u.r]) {
     const chat = chatFor(u.r);
     if (!chat) return out(503, { ok: false, error: "guruh ID sozlanmagan" });
-    const r = await send(T, chat, `🏁 ${ROLES[u.r].label} ${u.n} ishdan ketdi (${t})`);
+    const at = /^\d{2}:\d{2}$/.test(String(b.at || "")) ? b.at : t;
+    const r = await send(T, chat, `🏁 ${ROLES[u.r].label} ${u.n} ishdan ketdi (${at})`);
     return out(r.ok ? 200 : 502, r);
   }
   if (b.type === "chats" && (u.r === "superadmin" || u.r === "Admin")) {
