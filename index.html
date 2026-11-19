@@ -831,7 +831,7 @@ $("#xa").onclick=function(){var n=$("#xn").value.trim(),q=Math.max(1,parseInt($(
 document.querySelectorAll("[data-xd]").forEach(function(b){b.onclick=function(){var i=SET.findIndex(function(y){return y.id===b.dataset.xd});if(i<0)return;SET.splice(i,1);setsv();davomat();toast("O‘chirildi")}})}
 function mine(r,kind){var rl=role();if(rl!=="LOR"&&rl!=="Hamshira")return true;var as=[r.to].concat((r.its||[]).filter(function(i){return i.t===kind}).map(function(i){return i.to})).filter(Boolean);return!as.length||as.indexOf(user)>-1}
 function wfill(kind){var t=wq.toLowerCase(),rl=role(),adm=rl==="superadmin"||rl==="Admin",dn=DIRS[kind==="LOR"?"tekshiruvlar":"muolaja"].filter(function(r){return!r.a});
-var l=rows.filter(function(r){return r.s===kind&&inRange(r)&&mine(r,kind)&&r.n.toLowerCase().indexOf(t)>-1}).sort(function(a,b){return(a.date+a.t).localeCompare(b.date+b.t)});
+var l=rows.filter(function(r){return r.s===kind&&inRange(r)&&mine(r,kind)&&r.n.toLowerCase().indexOf(t)>-1}).sort(function(a,b){return(b.date+b.t).localeCompare(a.date+a.t)});
 $("#wl").innerHTML=l.map(function(r){var du=dueOf(r);
 var its0=r.its||[],alld=its0.length>0&&its0.every(function(i){return i.done}),st0=alld?" wg":" wy";
 return'<div class="wc'+(du?" due":"")+st0+'"><div><b>'+esc(r.n)+'</b> <small>'+tm(r)+(r.ph?" · "+esc(r.ph):"")+'</small> <button type="button" class="chip" data-wh="'+r.id+'" style="background:#fff;color:#1565c0;border:1px solid #9fc5e8;margin:2px 0">📋 Tarix</button>'+(r.cm?'<div style="margin:4px 0"><small>💬 '+esc(r.cm)+'</small></div>':"")+(r.to?' <span class="tag">→ '+esc(nm(r.to))+'</span>':"")+(du?' <span class="red">Kassada to‘lanmagan: '+fmt(du)+'</span>':"")+'</div>'+
