@@ -213,7 +213,7 @@ function inRange(r){return r.date>=st.from&&r.date<=st.to}
 
 var user="";try{user=localStorage.getItem("lorusr")||""}catch(e){}
 
-function enter(u,fresh){var a=US.find(function(x){return x.l===u});if(!a){loginUI();return}user=u;try{localStorage.setItem("lorusr",u)}catch(e){}$("#who").textContent=a.n+" · "+(ROLEN[a.r]||a.r);applyNav();$("#login").style.display="none";$("#app").style.display="block";$("#p").value="";if(fresh){LG("Tizimga kirdi",a.n+" ("+(ROLEN[a.r]||a.r)+")");}try{tgArrive(a,fresh)}catch(e){}try{presBeat()}catch(e){}route()}
+function enter(u,fresh){var a=US.find(function(x){return x.l===u});if(!a){loginUI();return}user=u;try{localStorage.setItem("lorusr",u)}catch(e){}$("#who").textContent=a.n+" · "+(ROLEN[a.r]||a.r);applyNav();$("#login").style.display="none";$("#app").style.display="block";$("#p").value="";if(fresh){LG("Tizimga kirdi",a.n+" ("+(ROLEN[a.r]||a.r)+")");try{var xr=SET.find(function(y){return y.id==="on:"+a.l});if(!xr){xr={id:"on:"+a.l};SET.push(xr)}xr.li=Date.now();xr.lo=0;xr.ts=0;setsv()}catch(e){}}try{tgArrive(a,fresh)}catch(e){}try{presBeat()}catch(e){}route()}
 $("#out").onclick=function(){try{tgLeave()}catch(e){}try{presOff()}catch(e){}try{localStorage.removeItem("lorusr")}catch(e){}$("#app").style.display="none";$("#login").style.display="grid";loginUI()};
 window.addEventListener("hashchange",route);
 (function(){var cl=function(){document.body.classList.remove("menu-open")};$("#mnu").onclick=function(){document.body.classList.toggle("menu-open")};$("#ovl").onclick=cl;window.addEventListener("hashchange",cl);$("#nav").addEventListener("click",function(e){if(e.target.closest("a"))cl()})})();window.addEventListener("resize",function(){if((location.hash||"")==="#tv"&&user)try{route()}catch(e){}});
@@ -582,12 +582,17 @@ $("#smsb").onclick=function(){fetch(SMSF,{method:"POST",headers:{"Content-Type":
 var l=SET.filter(function(x){return x.id.indexOf("tgs:"+TODAY+":")===0});
 $("#tgl").innerHTML=l.length?l.map(function(x){var uu=US.find(function(y){return y.l===x.id.split(":")[2]});return'<div class="wi"><span>'+esc(nm(x.id.split(":")[2]))+(uu?' <small>'+esc(ROLEN[uu.r]||uu.r)+'</small>':"")+'</span><small>'+esc(x.v||"")+'</small></div>'}).join(""):'<p style="color:var(--mute);margin:0">Hozircha yo‘q.</p>';var te=SET.filter(function(x){return x.id.indexOf("tge:")===0&&x.d===TODAY});$("#tge").innerHTML=te.length?'<div class="card" style="border-color:#d33;margin:0 0 12px"><b style="color:#d33">Yuborilmagan xabarlar</b>'+te.map(function(x){return'<div class="wi"><small>'+esc(x.v||"")+'</small></div>'}).join("")+"</div>":""}
 /* ---- Ishdagi xodimlar (login qilganda avtomat) ---- */
-function presOn(r){return r==="LOR"||r==="Hamshira"}
-function presBeat(){try{fixPrices()}catch(e){}var a=US.find(function(x){return x.l===user});if(a&&TGPEND&&TGTRY<6){TGTRY++;try{tgArrive(a)}catch(e){}}if(!a||!presOn(a.r))return;var id="on:"+a.l,x=SET.find(function(y){return y.id===id});
+function presOn(r){return r==="LOR"||r==="Hamshira"||r==="Registrator"}
+function presBeat(){try{fixPrices()}catch(e){}var a=US.find(function(x){return x.l===user});var xo=a&&SET.find(function(y){return y.id==="on:"+a.l});if(xo&&xo.lo&&xo.lo>(xo.li||0)&&STAFFR.indexOf(a.r)>-1){forceOut();return}if(a&&TGPEND&&TGTRY<6){TGTRY++;try{tgArrive(a)}catch(e){}}if(!a||!presOn(a.r))return;var id="on:"+a.l,x=SET.find(function(y){return y.id===id});
 if(!x){x={id:id};SET.push(x)}if(x.d!==TODAY||!x.ts||Date.now()-x.ts>300000){x.since=hhmm()}x.d=TODAY;x.ts=Date.now();setsv()}
 function presOff(){var x=SET.find(function(y){return y.id==="on:"+user});if(x){x.ts=0;setsv()}}
 function onduty(role){return SET.filter(function(x){if(x.id.indexOf("on:")!==0||x.d!==TODAY||!x.ts||Date.now()-x.ts>300000)return false;var u=US.find(function(y){return y.l===x.id.slice(3)});return u&&u.r===role}).map(function(x){var u=US.find(function(y){return y.l===x.id.slice(3)});return{n:u.n,s:x.since||""}})}
-setInterval(function(){try{if(user&&document.getElementById("app").style.display==="block")presBeat()}catch(e){}},60000);
+var STALE=360000,STAFFR=["LOR","Hamshira","Registrator"];
+function tgLeaveFor(login,at){if(!tgOn()||location.protocol==="file:")return;try{fetch(TGF,{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"leave",login:login,at:at})}).catch(function(){})}catch(e){}}
+function autoLeave(){try{var now=Date.now(),ch=0;SET.forEach(function(x){if(x.id.indexOf("on:")!==0||!x.ts||now-x.ts<STALE)return;var l=x.id.slice(3);if(l===user)return;var u=US.find(function(y){return y.l===l});if(!u||STAFFR.indexOf(u.r)<0)return;if(x.lo&&x.lo>(x.li||0))return;var d=new Date(x.ts),at=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);x.lo=now;x.ts=0;ch=1;tgLeaveFor(l,at);var lg={id:"log:"+nid(),ts:now,u:l,a:"Avtomat chiqdi (brauzer yopildi)",d:u.n+" · oxirgi faollik "+at};SET.push(lg)});if(ch)setsv()}catch(e){}}
+function selfStale(u){try{var a=US.find(function(y){return y.l===u}),x=SET.find(function(y){return y.id==="on:"+u});if(!a||STAFFR.indexOf(a.r)<0||!x)return false;if(x.lo&&x.lo>(x.li||0))return true;if(x.ts&&Date.now()-x.ts>=STALE){var d=new Date(x.ts),at=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);x.lo=Date.now();x.ts=0;tgLeaveFor(u,at);SET.push({id:"log:"+nid(),ts:Date.now(),u:u,a:"Avtomat chiqdi (brauzer yopildi)",d:a.n+" · oxirgi faollik "+at});setsv();return true}}catch(e){}return false}
+function forceOut(){try{localStorage.removeItem("lorusr")}catch(e){}user="";$("#app").style.display="none";$("#login").style.display="grid";loginUI();toast("Siz tizimdan chiqarildingiz. Qaytadan kiring")}
+setInterval(function(){try{if(user&&document.getElementById("app").style.display==="block"){presBeat();autoLeave()}}catch(e){}},60000);
 document.addEventListener("visibilitychange",function(){try{if(!document.hidden&&user)presBeat()}catch(e){}});
 var PAYS=PTYPES.concat(["Chegirma"]);
 var cur=null,g={f1:"",f2:""};
@@ -988,7 +993,7 @@ document.querySelectorAll(".langsel").forEach(function(s){s.onchange=function(){
 TOBS.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:TA});
 /*/I18N*/
 loginUI();
-try{if(user)enter(user)}catch(e){console.error(e)}
+try{if(user&&selfStale(user)){try{localStorage.removeItem("lorusr")}catch(e){}user=""}if(user)enter(user)}catch(e){console.error(e)}
 try{setLang(LANG)}catch(e){console.error(e)}
 </script>
 <!-- v2: alohida LOR/Muolaja omborlari -->
