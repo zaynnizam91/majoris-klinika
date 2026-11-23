@@ -594,9 +594,10 @@ SET.push({id:"imp1",v:1},{id:"imp2",v:1});setsv();sv();mvs();save();if((location
 /* ---- Telegram ---- */
 var TGF="/.netlify/functions/tg",SMSF="/.netlify/functions/sms";
 function tgOn(){var x=SET.find(function(y){return y.id==="tgcfg"});return!x||x.on!==0}
-function tgLeave(){var a=US.find(function(x){return x.l===user});if(!a||["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:")return;try{fetch(TGF,{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"leave",login:a.l})}).catch(function(){})}catch(e){}}
+function tgDup(k,l){try{var key="tgl:"+k+":"+l,t=+localStorage.getItem(key)||0,n=Date.now();if(n-t<180000)return true;localStorage.setItem(key,String(n))}catch(e){}return false}
+function tgLeave(){var a=US.find(function(x){return x.l===user});if(!a||["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:"||tgDup("leave",a.l))return;try{fetch(TGF,{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"leave",login:a.l})}).catch(function(){})}catch(e){}}
 function tgArrive(a,fresh){if(["LOR","Hamshira","Registrator"].indexOf(a.r)<0||!tgOn()||location.protocol==="file:")return;
-if(fresh){TGPEND=a;TGTRY=0}else if(!TGPEND||TGPEND.l!==a.l)return;
+if(fresh){if(tgDup("arrive",a.l))return;TGPEND=a;TGTRY=0}else if(!TGPEND||TGPEND.l!==a.l)return;
 var cur=TGPEND;if(TGBUSY)return;TGBUSY=1;
 function fail(why){TGBUSY=0;TGERR=(hhmm()+" · "+a.l+" · "+(why||"xato"));try{localStorage.setItem("tgerr",TGERR)}catch(e){}var ei="tge:"+a.l,ex=SET.find(function(y){return y.id===ei});if(!ex){ex={id:ei};SET.push(ex)}ex.v=TGERR;ex.d=TODAY;setsv()}
 fetch(TGF,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"arrive",login:a.l})}).then(function(r){return r.json().catch(function(){return{ok:false,error:"server javobi noto‘g‘ri (HTTP "+r.status+")"}})}).then(function(j){
@@ -670,7 +671,7 @@ function selfStale(u){try{var a=US.find(function(y){return y.l===u}),x=SET.find(
 function forceOut(){try{localStorage.removeItem("lorusr")}catch(e){}user="";$("#app").style.display="none";$("#login").style.display="grid";loginUI();toast("Siz tizimdan chiqarildingiz. Qaytadan kiring")}
 setInterval(function(){try{var nw=Date.now(),slept=nw-LASTTICK>150000;LASTTICK=nw;if(user&&document.getElementById("app").style.display==="block"){presBeat();if(!slept&&!document.hidden)autoLeave()}}catch(e){}},60000);
 document.addEventListener("visibilitychange",function(){try{if(!document.hidden&&user)presBeat()}catch(e){}});
-window.addEventListener("pagehide",function(e){try{if(user&&!e.persisted){localStorage.setItem("lorbye",String(Date.now()));tgLeave()}}catch(x){}});var PAYS=PTYPES.concat(["Chegirma"]);
+var PAYS=PTYPES.concat(["Chegirma"]);
 var cur=null,g={f1:"",f2:""};
 function pcOf(l){var u=US.find(function(x){return x.l===l});return u&&u.pct!=null?+u.pct:0}
 function docL(r,it){return it.by||it.to||r.to||""}
@@ -1109,7 +1110,7 @@ document.querySelectorAll(".langsel").forEach(function(s){s.onchange=function(){
 TOBS.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:TA});
 /*/I18N*/
 loginUI();
-try{if(user&&selfStale(user)){try{localStorage.removeItem("lorusr")}catch(e){}user=""}if(user){enter(user);var lb=+localStorage.getItem("lorbye")||0;if(lb&&Date.now()-lb<30000){var ua=US.find(function(x){return x.l===user});if(ua)tgArrive(ua,true)}}}catch(e){console.error(e)}
+try{if(user&&selfStale(user)){try{localStorage.removeItem("lorusr")}catch(e){}user=""}if(user){enter(user);}}catch(e){console.error(e)}
 try{setLang(LANG)}catch(e){console.error(e)}
 </script>
 <!-- v2: alohida LOR/Muolaja omborlari -->
