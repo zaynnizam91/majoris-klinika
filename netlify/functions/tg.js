@@ -22,6 +22,24 @@ async function user(login) {
   const a = await r.json();
   return a[0] && a[0].data;
 }
+// Bir xil xabar (keldi/ketdi) bir necha qurilmadan yoki qayta urinishdan ikki marta ketmasligi uchun:
+// oxirgi yuborilgan vaqt bazada saqlanadi. Xatolik bo'lsa xabar baribir yuboriladi.
+async function dup(kind, login, win) {
+  try {
+    const id = encodeURIComponent(`${kind}:${login}`);
+    const r = await fetch(`${SB}/rest/v1/records?select=data&coll=eq.tgdup&id=eq.${id}`, { headers: { apikey: KEY } });
+    if (r.ok) {
+      const a = await r.json();
+      if (a[0] && a[0].data && Date.now() - a[0].data.t < win) return true;
+    }
+    await fetch(`${SB}/rest/v1/records?on_conflict=coll,id`, {
+      method: "POST",
+      headers: { apikey: KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify([{ coll: "tgdup", id: `${kind}:${login}`, data: { t: Date.now() }, deleted: false }]),
+    });
+  } catch (e) {}
+  return false;
+}
 async function send(T, chat, text) {
   const r = await fetch(`https://api.telegram.org/bot${T}/sendMessage`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: chat, text }) });
   const j = await r.json().catch(() => ({}));
@@ -47,12 +65,14 @@ exports.handler = async (ev) => {
   if (b.type === "arrive" && ROLES[u.r]) {
     const chat = chatFor(u.r);
     if (!chat) return out(503, { ok: false, error: "guruh ID sozlanmagan" });
+    if (await dup("arrive", String(b.login), 300000)) return out(200, { ok: true, dup: true });
     const r = await send(T, chat, `✅ ${ROLES[u.r].label} ${u.n} ishga keldi (${t})`);
     return out(r.ok ? 200 : 502, r);
   }
   if (b.type === "leave" && ROLES[u.r]) {
     const chat = chatFor(u.r);
     if (!chat) return out(503, { ok: false, error: "guruh ID sozlanmagan" });
+    if (await dup("leave", String(b.login), 300000)) return out(200, { ok: true, dup: true });
     const at = /^\d{2}:\d{2}$/.test(String(b.at || "")) ? b.at : t;
     const r = await send(T, chat, `🏁 ${ROLES[u.r].label} ${u.n} ishdan ketdi (${at})`);
     return out(r.ok ? 200 : 502, r);
