@@ -1053,7 +1053,9 @@ function show(){mex=$("#mex").value;var ks=names.filter(function(n){return!mex||
 var b=ks.map(function(n){var g=grp[n],f=g[2];c+=g[0];sh+=f;sp+=g[1];return'<tr><td>'+(++i)+'</td><td>'+esc(n)+'</td><td class="num">'+g[0]+'</td><td class="num">'+M(f)+'</td><td class="num">'+M(g[1])+'</td></tr>'}).join("")||'<tr><td colspan="5">Bu davrda ma\'lumot yo\'q.</td></tr>';
 $("#mrep").innerHTML=T(["№","Nomi","Soni","Foizda","Tekshiruv narxida"],b,'<tr><td colspan="2">Jami</td><td>'+c+'</td><td>'+M(sh)+'</td><td>'+M(sp)+'</td></tr>')}
 $("#mex").onchange=show;$("#mshow").onclick=show;show()}
-function lorItems(d,nd){var a=[];rows.forEach(function(r){(r.its||[]).forEach(function(it){var dd=it.dd||r.date;if(it.done&&it.paid&&it.t==="LOR"&&(it.by===d.l||(!it.by&&nd===1))&&dd>=st.from&&dd<=st.to)a.push({r:r,it:it,d:dd})})});return a}
+function isLorU(l){var u=US.find(function(x){return x.l===l});return!!u&&u.r==="LOR"}
+function lorOwner(it,r,nd,dl){if(it.by&&isLorU(it.by))return it.by;if(it.to&&isLorU(it.to))return it.to;if(r.to&&isLorU(r.to))return r.to;if(nd===1)return dl;return null}
+function lorItems(d,nd){var a=[];rows.forEach(function(r){(r.its||[]).forEach(function(it){var dd=it.dd||r.date;if(it.done&&it.paid&&it.t==="LOR"&&dd>=st.from&&dd<=st.to&&lorOwner(it,r,nd,d.l)===d.l)a.push({r:r,it:it,d:dd})})});return a}
 function ulush(){var r0=role(),canEd=r0==="superadmin",roAdm=r0==="Admin",docs=r0==="LOR"?[me()]:US.filter(function(u){return u.r==="LOR"});
 view.innerHTML='<div class="card"><h2 style="margin:0 0 8px">Ulush hisobi</h2><div class="bar">'+dateBar()+'<button class="chip" id="mo">Shu oy</button></div><div id="ul"></div></div>';
 bindDates(ulush);$("#mo").onclick=function(){st.from=TODAY.slice(0,8)+"01";st.to=TODAY;ulush()};
