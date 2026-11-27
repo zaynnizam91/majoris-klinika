@@ -305,12 +305,15 @@ view.innerHTML='<div class="card"><div class="brand">'+LOGO+'<span>LOR Doktor M<
 bindDates(reg);$("#add").onclick=function(){openDlg(null)};$("#psb").onclick=openPs;
 $("#sq").oninput=function(e){st.q=e.target.value;fill()};fill()}
 function vsnap(r){if(!isDev()||r.vs)return;if(!(r.its||[]).some(function(i){return i.paid&&!i.free&&!i.nothing}))return;r.vs=(r.its||[]).map(function(it){return{paid:it.paid,pt:it.pt,free:it.free,nothing:it.nothing,net:it.net,dsc:it.dsc,pdt:it.pdt,pid:it.pid}});r.vpays=JSON.parse(JSON.stringify(r.pays||[]));r.vp=r.p}
-function vproj(r){if(isDev())return r;if(!r.vs){if(!isNo(r)||(chadm()&&!(r.pays||[]).some(function(x){return x.nn&&hidP(x)})))return r;var h=Object.assign({},r);h.its=(r.its||[]).map(function(it){if(!it.nothing)return it;var x=Object.assign({},it,{paid:1,done:1});delete x.nothing;delete x.free;delete x.pt;return x});h.pays=(r.pays||[]).filter(function(x){return!x.nn});h.nothing=0;h.p=h.its.reduce(function(a,i){return a+(+i.p||0)},0);return h}var c=Object.assign({},r);c.its=(r.its||[]).map(function(it,i){return r.vs[i]?Object.assign({},it,r.vs[i]):it});c.pays=r.vpays||r.pays;c.p=revP(c.its)||r.vp||0;c.nothing=0;return c}
+function vproj(r){if(isDev())return r;var hasNo=isNo(r)||(r.pays||[]).some(function(x){return x.nn});if(!r.vs&&!hasNo)return r;
+var c=Object.assign({},r);c.its=(r.its||[]).map(function(it,i){var x=r.vs&&r.vs[i]?Object.assign({},it,r.vs[i]):Object.assign({},it);if(x.nothing||(!r.vs&&it.nothing)){x.paid=1;x.done=1;delete x.free;delete x.pt;delete x.dsc;delete x.net}delete x.nothing;return x});
+var pl=((r.vs&&r.vpays)||r.pays||[]).filter(function(x){return!x.nn});if(!pl.length&&hasNo)pl=[{id:"v"+r.id,date:r.date,t:r.t,type:"Naqd",amt:0,disc:0,by:"",n:c.its.length,fk:1}];c.pays=pl;
+c.p=revP(c.its)||r.vp||c.its.reduce(function(a,i){return a+(+i.p||0)},0);c.nothing=0;return c}
 function fill(){var t=st.q.toLowerCase(),base=rows.filter(inRange).map(vproj).filter(function(r){return(r.n+" "+r.ph).toLowerCase().indexOf(t)>-1});
 var c={all:base.length,LOR:0,MUOLAJA:0,due:0,open:0,staff:0};base.forEach(function(r){c[r.s]++;if(dueOf(r))c.due++;if(rowSt(r)==="rp")c.open++;if(r.staff)c.staff++});
 $("#ch").innerHTML=[["all","Barchasi"],["LOR","LOR"],["MUOLAJA","Muolaja"],["due","To‘lanmagan"],["open","Yopilmagan"],["staff","Xodimlar"]].map(function(x){return'<button class="chip'+(st.f===x[0]?" on":"")+'" data-f="'+x[0]+'">'+x[1]+" "+c[x[0]]+"</button>"}).join("");
 document.querySelectorAll("[data-f]").forEach(function(b){b.onclick=function(){st.f=b.dataset.f;fill()}});
-var PT2=["Naqd","UzCard","Humo","Click","Uzum","Payme","AlifPay","Bepul"];if(!st.p2)st.p2="";
+var PT2=["Naqd","UzCard","Humo","Click","Uzum","Payme","AlifPay"];if(!st.p2)st.p2="";
 var hasP=function(r,k){return(r.pays||[]).some(function(p){return p.type===k})||(r.its||[]).some(function(it){return it.paid&&(it.free?"Bepul":(it.pt||"Naqd"))===k})};
 var pc2={},ps2={};PT2.forEach(function(k){pc2[k]=0;ps2[k]=0});base.forEach(function(r){PT2.forEach(function(k){if(hasP(r,k))pc2[k]++});(r.pays||[]).forEach(function(p){if(ps2[p.type]!=null)ps2[p.type]+=p.amt||0})});
 $("#cpt").innerHTML='<button class="chip'+(st.p2?"":" on")+'" data-p2="">Barcha to‘lov</button>'+PT2.map(function(k){return'<button class="chip'+(st.p2===k?" on":"")+'" data-p2="'+k+'">'+k+" "+pc2[k]+'</button>'}).join("");
